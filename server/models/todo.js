@@ -18,19 +18,4 @@ var Todo = mongoose.model('Todos', mongoose.Schema({
     }
 }));
 
-// User model
-var User = mongoose.model('User', mongoose.Schema({  
-    email: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 1
-    },
-    name: {
-        type: String,
-        required: true,
-        trim: true,
-        minlength: 1
-    }
-}));
-module.exports = {Todo, User};
+module.exports = {Todo}
