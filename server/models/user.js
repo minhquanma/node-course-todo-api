@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 // User model
-var User = mongoose.model('User', mongoose.Schema({  
+var User = mongoose.model('Users', mongoose.Schema({  
     email: {
         type: String,
         required: true,
@@ -11,6 +11,7 @@ var User = mongoose.model('User', mongoose.Schema({
     name: {
         type: String,
         required: true,
+        default: 'Undefined',
         trim: true,
         minlength: 1
     }
