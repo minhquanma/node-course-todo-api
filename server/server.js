@@ -5,10 +5,13 @@ const { mongoose } = require('./db/mongoose.js')
 const { User } = require('./models/user.js');
 const { Todo } = require('./models/todo.js');
 
-var app = express();
+const app = express();
+
+const port = process.env.PORT || 3000; 
 
 app.use(bodyParser.json());
 
+// Add item
 app.post('/todos', (req, res) => {
     var todo = new Todo({
         text: req.body.text
@@ -22,6 +25,7 @@ app.post('/todos', (req, res) => {
     });
 });
 
+// Get all items
 app.get('/todos', (req, res) => {
     Todo.find().then((doc) => {
         res.send({
@@ -52,8 +56,27 @@ app.get('/todos/:id', (req, res) => {
     }
 });
 
-app.listen(3000, () => {
-    console.log('Started on port 3000');
+app.delete('/todos/:id', (req, res) => {
+    var id = req.params.id;
+
+    if (ObjectID.isValid(id)) {
+        Todo.findByIdAndRemove(id).then(doc => {
+            if (todo) {
+                res.status(200).send({todo});
+            } else {
+                // Not found
+                res.status(400).send();
+            }
+        }).catch((e) => {
+            res.status(400).send();
+        });
+    } else {
+        res.status(404).send();
+    }
+});
+
+app.listen(port, () => {
+    console.log(`Started on port: ${port}`);
 });
 
 // // User
