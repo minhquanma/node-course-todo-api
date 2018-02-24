@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { ObjectID } = require('mongodb');
@@ -18,8 +19,7 @@ app.post('/todos', (req, res) => {
     });
 
     Todo.create(todo).then((doc) => {
-        res.send(doc);
-        Todo.remove({_id: doc._id});
+        res.status(200).send(doc);
     }, (e) => {
         res.status(400).send(e);
     });
@@ -46,7 +46,7 @@ app.get('/todos/:id', (req, res) => {
                 res.status(200).send({todo});
             } else {
                 // Not found
-                res.status(400).send();
+                res.status(204).send();
             }
         }).catch((e) => {
             res.status(400).send();
@@ -60,12 +60,13 @@ app.delete('/todos/:id', (req, res) => {
     var id = req.params.id;
 
     if (ObjectID.isValid(id)) {
-        Todo.findByIdAndRemove(id).then(doc => {
+        Todo.findByIdAndRemove(id).then(todo => {
             if (todo) {
+                // Succeed
                 res.status(200).send({todo});
             } else {
                 // Not found
-                res.status(400).send();
+                res.status(204).send();
             }
         }).catch((e) => {
             res.status(400).send();
@@ -75,8 +76,64 @@ app.delete('/todos/:id', (req, res) => {
     }
 });
 
+app.patch('/todos/:id', (req, res) => {
+    var id = req.params.id;
+    var body = _.pick(req.body, ['text'], ['completed']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+
+    if (_.isBoolean(body.completed) && body.completed == true) {
+        body.completedAt = new Date().getTime();
+    } else {
+        body.completed = false;
+        body.completed = null;
+    }
+
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then(todo => {
+        // Not found
+        if (!todo) {
+            return res.status(404).send();
+        }
+        // else
+        res.status(200).send({todo});
+
+    }).catch(e => {
+        res.send(400).send();
+    });
+});
+
+// POST /users
+app.post('/users', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password', 'name']);
+    var user = new User(body);
+
+    user.save().then(() => {
+        return user.generateAuthToken();
+    }).then((token) => {
+        res.header('x-auth', token).send(user);
+    }).catch(e => {
+        res.status(400).send(e);
+    });
+});
+
+app.get('/users', (req, res) => {
+    User.find().then((doc) => {
+        res.send({
+            doc
+        });
+    }, (e) => {
+        res.status(400).send(e);
+    } );
+});
+
 app.listen(port, () => {
-    console.log(`Started on port: ${port}`);
+    var date = new Date();
+    var currentTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+
+    console.log(`Started on port: ${port}`)
+    console.log(`Current time is: ${currentTime}`);
 });
 
 // // User
